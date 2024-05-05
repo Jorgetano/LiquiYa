@@ -1,5 +1,6 @@
 package com.example.liquiya;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,11 +19,13 @@ import com.google.firebase.auth.FirebaseAuth;
 public class MainActivity extends AppCompatActivity {
     Button Registrarse;
     Button btnIngresar;
+    Button btnRecuperar;
     FirebaseAuth mAuth;
     EditText txtPassword;
     EditText txtUser;
 
     /* access modifiers changed from: protected */
+    @SuppressLint("MissingInflatedId")
     public void onCreate(Bundle savedInstanceState) {
 
 
@@ -35,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         this.txtPassword = findViewById(R.id.txtPass);
         this.btnIngresar = findViewById(R.id.BIniciar_sesion);
         this.Registrarse = findViewById(R.id.BRegistrarse);
+        this.btnRecuperar = findViewById(R.id.BRecuperar);
 
         this.Registrarse.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -50,6 +54,11 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(MainActivity.this, "Ingresar los datos", Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+        this.btnRecuperar.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                MainActivity.this.startActivity(new Intent(MainActivity.this, restablecerContrasena.class));
             }
         });
 

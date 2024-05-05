@@ -13,19 +13,23 @@
         android:theme="@style/Theme.LiquiYa"
         tools:targetApi="31">
         <activity
+            android:name=".restablecerContrasena"
+            android:exported="false" />
+        <activity
             android:name=".Registro"
-            android:exported="false"/>
+            android:exported="false" />
         <activity
             android:name=".Menu"
-            android:exported="false"/>
+            android:exported="false" />
         <activity
             android:name=".Animacion"
-            android:exported="false"/>
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

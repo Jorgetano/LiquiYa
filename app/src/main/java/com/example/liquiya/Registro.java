@@ -1,18 +1,27 @@
 package com.example.liquiya;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import androidx.activity.EdgeToEdge;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.liquiya.Menu;
+import com.example.liquiya.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.util.TextUtils;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Registro extends AppCompatActivity {
     Button buttonRegister;
@@ -21,17 +30,20 @@ public class Registro extends AppCompatActivity {
     EditText editTextUsername;
     TextView textViewMessage;
 
-    /* access modifiers changed from: protected */
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_registro);
-        this.editTextUsername = (EditText) findViewById(R.id.Registro_Nombre);
-        this.editTextEmail = (EditText) findViewById(R.id.Registro_Correo);
-        this.editTextPassword = (EditText) findViewById(R.id.Registro_Contraseña);
-        this.buttonRegister = (Button) findViewById(R.id.BRegistrarse);
-        this.textViewMessage = (TextView) findViewById(R.id.Mensaje);
+    EditText editTextApellido;
+    DatabaseReference mDatabase;
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_registro);
+        editTextUsername = findViewById(R.id.Registro_Nombre);
+        editTextApellido = findViewById(R.id.Registro_Apellido);
+        editTextEmail = findViewById(R.id.Registro_Correo);
+        editTextPassword = findViewById(R.id.Registro_Contraseña);
+        buttonRegister = findViewById(R.id.BRegistrarse);
+        textViewMessage = findViewById(R.id.Mensaje);
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -41,31 +53,46 @@ public class Registro extends AppCompatActivity {
         });
     }
 
+    @SuppressLint("SetTextI18n")
     private void registerUser() {
         String email = editTextEmail.getText().toString().trim();
         String password = editTextPassword.getText().toString().trim();
+        String username = editTextUsername.getText().toString().trim();
+        String apellido = editTextApellido.getText().toString().trim();
 
-        if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
+        if (email.isEmpty() || password.isEmpty() || username.isEmpty() || apellido.isEmpty()) {
             textViewMessage.setText("Por favor, complete todos los campos.");
             return;
         }
 
         final FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        this.buttonRegister.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                mAuth.createUserWithEmailAndPassword(Registro.this.editTextEmail.getText().toString().trim(), Registro.this.editTextPassword.getText().toString().trim()).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @SuppressLint("SetTextI18n")
-                    public void onComplete(Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            Registro.this.textViewMessage.setText("Registro exitoso para " + mAuth.getCurrentUser().getEmail());
-                            Registro.this.editTextUsername.setText("");
-                            Registro.this.editTextEmail.setText("");
-                            Registro.this.editTextPassword.setText("");
-                            return;
+        mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onComplete(Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    textViewMessage.setText("Registro exitoso para " + mAuth.getCurrentUser().getEmail());
+                    editTextUsername.setText("");
+                    editTextEmail.setText("");
+                    editTextPassword.setText("");
+                    editTextApellido.setText("");
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("Correo", email);
+                    map.put("Nombre", username);
+                    map.put("Apellido", apellido);
+                    String id = mAuth.getCurrentUser().getUid();
+                    mDatabase.child("Users").child(id).setValue(map).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(Task<Void> task2) {
+                            if (task2.isSuccessful()){
+                                startActivity(new Intent(Registro.this, Menu.class));
+                                finish();
+                            }
                         }
-                        Registro.this.textViewMessage.setText("Error al registrar el usuario: " + task.getException().getMessage());
-                    }
-                });
+                    });
+                } else {
+                    textViewMessage.setText("Error al registrar el usuario: " + task.getException().getMessage());
+                }
             }
         });
     }
